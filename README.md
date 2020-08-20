@@ -31,5 +31,5 @@ jupyter notebook --ip 0.0.0.0 --no-browser
 
 Then point your webbrowser to the instance (if you are local, try [localhost](https://localhost:8888)). 
 
-Open the [quickplots notebook](https://github.com/ubcms-xai/XAICoffea/blob/main/quickplots.ipynb) and execute it. 
+Open the [quickplots notebook](https://github.com/ubcms-xai/XAICoffea/blob/main/quickplots.ipynb) within the notebook and execute it. 
 

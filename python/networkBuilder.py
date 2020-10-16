@@ -68,13 +68,25 @@ def build_XY(features, label, dic1, dic2, signal="Zbb"):
     dim = [ele.shape+(1,) for ele in X]
     for i in range(0,len(features)):
         X[i] = X[i].reshape(dim[i])
-        
-    #choose the correct column for signal labels
+
+    #choose the correct column for signal labels                               
     if "Zbb" in signal:
         Y = [Y[0][:,::2]]
     else:
         Y = [Y[0][:,:2]]
+        
+    #Randomize!                                                                
+    np.random.seed(1)
+    # split signal and background indices                                      
+    ind = np.argwhere(Y[0])[:,0]
+    # shuffle indices randomly                                                 
+    np.random.shuffle(ind)
+    for j in range(0,len(features)):
+        X[j] = X[j][ind]
+    Y = [Y[0][ind]]
+
     return X,Y
+
 
 def get_feat(flav=True,  images=False, particleInfo=False):
     feat = ['jetPt',

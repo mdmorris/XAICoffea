@@ -78,12 +78,13 @@ def build_XY(features, label, dic1, dic2, signal="Zbb"):
     else:
         Y = [Y[0][:,:2]]
         
-    #Randomize!                                                                
-    np.random.seed(1)
+    #Randomize! 
+    seed = 1234567890
+    prng = np.random.RandomState(seed)
     # split signal and background indices                                      
     ind = np.argwhere(Y[0])[:,0]
     # shuffle indices randomly                                                 
-    np.random.shuffle(ind)
+    prng.shuffle(ind)
     for j in range(0,len(features)):
         X[j] = X[j][ind]
     Y = [Y[0][ind]]

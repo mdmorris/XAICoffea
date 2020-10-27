@@ -15,6 +15,9 @@ from matplotlib.colors import LogNorm
 import sklearn
 from sklearn.utils import shuffle
 
+import os
+import pickle
+
 def build_DNN(X_train):
     input2 = [layers.Input(shape = (len(X_train[i][0]),)) for i in range(0,len(X_train))]
     if len(input2) == 1:
@@ -35,7 +38,7 @@ def build_DNN(X_train):
                 metrics = ['categorical_crossentropy', 'accuracy'])
     return model
 
-def build_CNN_2D(X_train):
+def build_CNN_2D(X_train, grid):
     input2 = [layers.Input(shape = (len(X_train[i][0]),)) for i in range(1,len(X_train))]
     input1 = layers.Input(shape = (grid, grid,1))
     x = layers.Conv2D(32, (5, 5), activation = 'relu', padding = 'same')(input1)

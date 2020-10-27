@@ -92,45 +92,9 @@ def build_XY(features, label, dic1, dic2, signal="Zbb"):
     return X,Y
 
 
-def get_feat(flav=True,  images=False, particleInfo=False):
-    feat = ['jetPt',
-            'jetEta',
-            'jetPhi',
-            'jetMass',
-            'jetMassSD',
-            'deltaR_subjets',
-            'z',
-            'tau1_b05',
-            'tau2_b05',
-            'tau3_b05',
-            'tau1_sd_b05',
-            'tau2_sd_b05',
-            'tau3_sd_b05',
-            'tau1_b10',
-            'tau2_b10',
-            'tau3_b10',
-            'tau1_sd_b10',
-            'tau2_sd_b10',
-            'tau3_sd_b10',
-            'tau1_b20',
-            'tau2_b20',
-            'tau3_b20',
-            'tau1_sd_b20',
-            'tau2_sd_b20',
-            'tau3_sd_b20',
-            'beta3',
-            'beta3_sd',
-            'tau21',
-            'jetpull_abs']
-
-    if flav:
-        feat.extend(['chMult',
-                     'neutMult',
-                     'phoMult',
-                     'eleMult',
-                     'muMult',
-                     'dxy_max',
-                     'dz_max'])
+def get_feat(xaugs=True, flav=True,  images=False, particleInfo=False):
+    
+    feat = []
 
     if images:
         feat.insert(0,'jetImages')
@@ -153,5 +117,45 @@ def get_feat(flav=True,  images=False, particleInfo=False):
                      'deltaR_subjet1',
                      'dxy',
                      'dz'])
+
+    if(xaugs):
+        feat.extend(['jetPt',
+                     'jetEta',
+                     'jetPhi',
+                     'jetMass',
+                     'jetMassSD',
+                     'deltaR_subjets',
+                     'z',
+                     'tau1_b05',
+                     'tau2_b05',
+                     'tau3_b05',
+                     'tau1_sd_b05',
+                     'tau2_sd_b05',
+                     'tau3_sd_b05',
+                     'tau1_b10',
+                     'tau2_b10',
+                     'tau3_b10',
+                     'tau1_sd_b10',
+                     'tau2_sd_b10',
+                     'tau3_sd_b10',
+                     'tau1_b20',
+                     'tau2_b20',
+                     'tau3_b20',
+                     'tau1_sd_b20',
+                     'tau2_sd_b20',
+                     'tau3_sd_b20',
+                     'beta3',
+                     'beta3_sd',
+                     'tau21',
+                     'jetpull_abs'])
+
+    if flav:
+        feat.extend(['chMult',
+                     'neutMult',
+                     'phoMult',
+                     'eleMult',
+                     'muMult',
+                     'dxy_max',
+                     'dz_max'])
     return feat
 

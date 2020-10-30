@@ -65,6 +65,17 @@ def build_CNN_2D(X_train, grid):
                 metrics = ['categorical_crossentropy', 'accuracy'])
     return model
 
+def run_DNN(CNN, X_train, Y_train, checkpoint_path):
+    model_checkpoint = keras.callbacks.ModelCheckpoint(checkpoint_path, monitor = 'val_loss', verbose = 1, save_best_only = True, save_weights_only = False, mode = 'auto', period = 1)    
+    EPOCHS = 60
+    early_stop = keras.callbacks.EarlyStopping(monitor = 'val_loss', patience = 10, min_delta = 1e-5)
+    history = CNN.fit(
+        X_train, Y_train,
+        epochs = EPOCHS,
+        validation_split = 0.2,
+        verbose = 1,
+        callbacks = [early_stop, model_checkpoint])
+
 def build_XY(features, label, dic1, dic2, signal="Zbb"):
     X = [np.concatenate((dic1[key], dic2[key])) for key in features]
     Y = [np.concatenate((dic1[key], dic2[key])) for key in label]

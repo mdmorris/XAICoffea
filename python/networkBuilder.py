@@ -29,12 +29,8 @@ def build_DNN(X_train):
     output = layers.Dense(2, activation = 'softmax')(x)
     model = models.Model(inputs = input2, 
                          outputs = output)
-    opt=keras.optimizers.Adam(lr = 0.0005,
-                              beta_1 = 0.9,
-                              beta_2 = 0.9,
-                              amsgrad = False)
     model.compile(loss = 'categorical_crossentropy',
-                optimizer = opt,
+                optimizer = 'adam',
                 metrics = ['categorical_crossentropy', 'accuracy'])
     return model
 
@@ -56,12 +52,8 @@ def build_CNN_2D(X_train, grid):
     output = layers.Dense(2, activation='softmax')(x)
     model = models.Model(inputs= [input1] + input2,
                          outputs = output)
-    opt = keras.optimizers.Adam(lr = 0.001,
-                                beta_1 = 0.9,
-                                beta_2 = 0.999,
-                                amsgrad = False)
     model.compile(loss = 'categorical_crossentropy',
-                optimizer = opt,
+                optimizer = 'adam',
                 metrics = ['categorical_crossentropy', 'accuracy'])
     return model
 

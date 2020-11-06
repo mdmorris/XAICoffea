@@ -35,12 +35,25 @@ import matplotlib.cm
 import os
 import datetime
 
-def get_lrp_score(test_inputs, model, nXvar, totalVar, batch=20):
+
+def printTime(delta, definition='Elapsed Time'):
     
+    
+    time_string = '{0:0.1f} h {1:0.1f} min {2:0.2f} sec'.format(delta // 3600, delta % 3600 // 60, delta % 3600 % 60)
+    full_string = definition + ': ' + time_string
+    print(full_string)
+    
+
+
+def get_lrp_score(test_inputs, model, nXvar, totalVar, batchShape=[20]):
+    
+    
+    # test_inputs is X_test output from build_XY function in networkBuilder.py 
     # model loaded from model = keras.models.load_model(model_name)
     # nXvar = number of expert features (xaugs)
     # totalVar = total number of features
-    # batch = number of constituent particles per event
+    # batchShape =  [20] for particle list: number of constituent particles per event
+    #               [16, 16] for jet images: grid shape
     
     lrp_toc = time.time()
     
@@ -103,10 +116,10 @@ def get_lrp_score(test_inputs, model, nXvar, totalVar, batch=20):
                 
                 
     # copy to arrays           
-    lrp_plist_first = np.array(lrp_plist_list).reshape(totalVar-nXvar, size_from_loop, batch, 1)
+    lrp_plist_first = np.array(lrp_plist_list).reshape(totalVar-nXvar, size_from_loop, *batchShape, 1)
     lrp_xaugs_first = np.array(lrp_xaugs_list).reshape(nXvar, size_from_loop, 1)
     
-    lrp_plist_last = np.array(lrp_plist_list_last).reshape(totalVar-nXvar,(batchsize % nElem),batch,1)
+    lrp_plist_last = np.array(lrp_plist_list_last).reshape(totalVar-nXvar,(batchsize % nElem),*batchShape,1)
     lrp_xaugs_last = np.array(lrp_xaugs_list_last).reshape(nXvar,(batchsize % nElem),1)
                 
     
@@ -119,6 +132,10 @@ def get_lrp_score(test_inputs, model, nXvar, totalVar, batch=20):
     del lrp_plist_list_last
     del lrp_xaugs_list_last
     del lrp_list
+    del lrp_plist_first
+    del lrp_xaugs_first
+    del lrp_plist_last
+    del lrp_xaugs_last
     
     lrp_tic = time.time()
     
@@ -126,6 +143,7 @@ def get_lrp_score(test_inputs, model, nXvar, totalVar, batch=20):
     printTime(lrp_tic - lrp_toc, 'LRP Analysis Time')
     
     return lrp_plist, lrp_xaugs
+    
 
 def get_normalized_lrp_score(lrp_plist, lrp_xaugs):
 
@@ -140,7 +158,7 @@ def get_normalized_lrp_score(lrp_plist, lrp_xaugs):
             lrp_plist_norm[:,i] = lrp_plist[:,i] / maxval
 
     if(len(lrp_xaugs > 0)):   
-        for i in range(analysis_a1b0_full_xv_norm.shape[1]):
+        for i in range(lrp_xaugs.shape[1]):
 
             maxval = np.max(abs(lrp_xaugs[:,i].flatten()))
             lrp_xaugs_norm[:,i] = lrp_xaugs[:,i] / maxval

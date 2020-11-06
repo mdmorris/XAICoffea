@@ -57,6 +57,59 @@ def build_CNN_2D(X_train, grid):
                 metrics = ['categorical_crossentropy', 'accuracy'])
     return model
 
+def build_CNN_2D(n, nex):
+    
+    # n = total number of input features
+    # nex = number of expert features (xaugs)
+    
+    inpts = []
+    xaugs = []
+    xlayers = []
+    
+    # loop over all input variables
+    for i in range(n):
+        
+        # particle list inputs 
+        if(i < n-nex):
+
+            inpt = layers.Input(shape = (20,1))
+
+            x = layers.Conv1D(64, 3, padding = 'same', activation='relu')(inpt)
+            x = layers.Conv1D(64, 1, padding = 'same', activation='relu')(x)
+            x = layers.Dropout(0.2)(x)
+            x = layers.MaxPool1D(2)(x)
+            x = layers.Conv1D(32, 3, padding = 'same', activation='relu')(x)
+            x = layers.Conv1D(32, 1, padding = 'same', activation='relu')(x)
+            x = layers.Dropout(0.2)(x)
+            x = layers.MaxPool1D()(x)
+            x1 = layers.Flatten()(x)
+
+            inpts.append(inpt)
+            xlayers.append(x1)
+        
+        
+        # expert variable inputs 
+        elif((nex > 0)):
+
+            inpt = layers.Input(shape = (1,))
+            xaugs.append(inpt)
+    
+    #concatenation of particle list inputs with expert variable inputs
+    if(n > 1):
+        x = layers.concatenate(inputs=xlayers+xaugs, axis=-1)
+
+    x = layers.Dense(64, activation='relu')(x)
+    x = layers.Dense(128, activation='relu')(x)
+    
+    output = layers.Dense(2, activation='softmax')(x) 
+    model = models.Model(inputs=inpts+xaugs, outputs=output)
+    model.compile(loss='categorical_crossentropy',
+                optimizer='adam',
+                metrics=['categorical_crossentropy', 'accuracy'])
+    
+    return model
+
+
 def run_DNN(CNN, X_train, Y_train, checkpoint_path):
     model_checkpoint = keras.callbacks.ModelCheckpoint(checkpoint_path, monitor = 'val_loss', verbose = 1, save_best_only = True, save_weights_only = False, mode = 'auto', period = 1)    
     EPOCHS = 60

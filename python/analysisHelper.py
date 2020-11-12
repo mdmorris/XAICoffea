@@ -270,26 +270,38 @@ def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20]):
     # batchShape =  [20] for particle list: number of constituent particles per event
     #               [16, 16] for jet images: grid shape
     
+    
+    
     lrp_mean = []
     lrp_xaugs_mean = []
+    lrp_std = []
+    lrp_xaugs_std = []
     
     lrp_axis = (0,2,3,4)
     if(len(batchShape)==2):
         lrp_axis = (0,2,3,4,5)
     
     if((len(lrp_models) > 0)):
-        lrp_mean = np.sum(lrp_models, axis=0) / len(lrp_models)
+        
+        nEvents = lrp_models[0].shape[1]
+        print('lrp', nEvents)
+        lrp_mean = np.sum(lrp_models, axis=lrp_axis) / (len(lrp_models)*np.prod(batchShape)*nEvents)
         lrp_std = np.std(lrp_models, axis=lrp_axis)
         
         
     
     if(len(lrp_xaugs_models) > 0):
-        lrp_xaugs_mean = np.sum(lrp_xaugs_models, axis=0) / len(lrp_xaugs_models)
+        
+        nEvents = lrp_xaugs_models[0].shape[1]
+        print('xaugs', nEvents)
+        lrp_xaugs_mean = np.sum(lrp_xaugs_models, axis=(0,2,3)) / len(lrp_xaugs_models*nEvents)
         lrp_xaugs_std = np.std(lrp_xaugs_models, axis=(0,2,3))
         
+    
+    lrp_mean_list = [lrp for lrp in lrp_mean] + [lrp for lrp in lrp_xaugs_mean]
+    lrp_std_list = [std for std in lrp_std] + [lrp for lrp in lrp_xaugs_std]
 
-
-    return lrp_mean, lrp_xaugs_mean, lrp_std
+    return lrp_mean_list, lrp_std_list
 
 
 

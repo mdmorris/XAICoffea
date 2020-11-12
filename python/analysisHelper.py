@@ -31,9 +31,73 @@ from sklearn.metrics import roc_curve, auc
 
 import matplotlib.pyplot as plt
 import matplotlib.cm
+import matplotlib as mpl
 
 import os
 import datetime
+
+feature_names={ 'jetImages':'Image',
+                'jetconstE_log':'log($E$)',
+                'jetconstEta_abs':'$|\eta|$',
+                'jetconstPt_Jetlog':'log($p_T / p_{T_{jet}}$)',
+                'jetconstPt_log':'log($p_T$)',
+                'isPho':r'$b_{\gamma}$',
+                'isNh':r'$b_{NH}$',
+                'isMuon':r'$b_{\mu}$',
+                'isEle':r'$b_{e}$',
+                'isCh':r'$b_{CH}$',
+                'charge':r'$q$',
+                'jetPt':r'$p_{T,jet}$',
+                'jetEta':r'$\eta(jet)$',
+                'jetPhi':r'$\phi(jet)$',
+                'jetMass':r'$m_{jet}$',
+                'jetMassSD':r'$m_{jet,sd}$',
+                'tau1_b05':r'$\tau_{1}^{(0.5)}$',
+                'tau2_b05':r'$\tau_{2}^{(0.5)}$',
+                'tau3_b05':r'$\tau_{3}^{(0.5)}$',
+                'tau1_sd_b05':r'$\tau_{1,sd}^{(0.5)}$',
+                'tau2_sd_b05':r'$\tau_{2,sd}^{(0.5)}$',
+                'tau3_sd_b05':r'$\tau_{3,sd}^{(0.5)}$',
+                'tau1_b10':r'$\tau_{1}^{(1)}$',
+                'tau2_b10':r'$\tau_{2}^{(1)}$',
+                'tau3_b10':r'$\tau_{3}^{(1)}$',
+                'tau1_sd_b10':r'$\tau_{1,sd}^{(1)}$',
+                'tau2_sd_b10':r'$\tau_{2,sd}^{(1)}$',
+                'tau3_sd_b10':r'$\tau_{3,sd}^{(1)}$',
+                'tau1_b15':r'$\tau_{1}^{(1.5)}$',
+                'tau2_b15':r'$\tau_{2}^{(1.5)}$',
+                'tau3_b15':r'$\tau_{3}^{(1.5)}$',
+                'tau1_sd_b15':r'$\tau_{1,sd}^{(1.5)}$',
+                'tau2_sd_b15':r'$\tau_{2,sd}^{(1.5)}$',
+                'tau3_sd_b15':r'$\tau_{3,sd}^{(1.5)}$',
+                'tau1_b20':r'$\tau_{1}^{(2)}$',
+                'tau2_b20':r'$\tau_{2}^{(2)}$',
+                'tau3_b20':r'$\tau_{3}^{(2)}$',
+                'tau1_sd_b20':r'$\tau_{1,sd}^{(2)}$',
+                'tau2_sd_b20':r'$\tau_{2,sd}^{(2)}$',
+                'tau3_sd_b20':r'$\tau_{3,sd}^{(2)}$',
+                'chMult':r'$N_{ch}$',
+                'neutMult':r'$N_{neut}$',
+                'phoMult':r'$N_{\gamma}$',
+                'eleMult':r'$N_{e}$',
+                'muMult':r'$N_{\mu}$',
+                'jetpull':r'$\phi_{pull}$',
+                'jetpull_abs':r'|$\phi_{pull}$|',
+                'beta3':r'$\beta_{3}$',
+                'beta3_sd':r'$\beta_{3}^{g}$',
+                'tau21':r'$\tau_{2}^{(1)} / \tau_{1}^{(1)}$',
+                'deltaR_jet':'$\Delta R$(jet)',
+                'deltaR_subjet0':'$\Delta R$(subjet0)',
+                'deltaR_subjet1':'$\Delta R$(subjet1)',
+                'deltaR_subjets':'$\Delta R_{subjets}$',
+                'delta_eta':'$\Delta \eta$',
+                'delta_phi':'$\Delta \phi$',
+                'z':r'$z$',
+                'dxy_max':r'$d_{xy,max}$',
+                'dz_max':r'$d_{z,max}$',
+                'dxy':'$d_{xy}$',
+                'dz':'$d_{z}$',
+              }
 
 
 def printTime(delta, definition='Elapsed Time'):
@@ -165,3 +229,82 @@ def get_normalized_lrp_score(lrp_plist, lrp_xaugs):
     
     
     return lrp_plist_norm, lrp_xaugs_norm
+
+
+
+def make_relevance_bar_plot(features, LRP_mean, LRP_std, topN=None):
+    
+    # list of features in same order as LRP_mean
+    # LRP_mean = array of averaged relevance scores
+    # LRP_std = standard deviation of averaged relevance scores
+    # topN = number of highest relevance scores to plot (for all features, topN=None)
+    
+    
+    params = {'legend.fontsize': 'x-large',
+     'axes.labelsize': 'x-large',
+     'axes.titlesize':'x-large',
+     'font.family':'serif',
+     'xtick.labelsize':'x-large',
+     'ytick.labelsize':'x-large',
+     'figure.facecolor':'white',
+     'axes.grid':True,
+     'grid.alpha':1.0 
+         }
+    
+    plt.rcParams.update(params)
+    plt.style.context('default')
+    mpl.rcParams.update({'hatch.linewidth':2.0})
+    
+    size_for_all_features = [15,10]
+    size_for_5_features = [7.5,5]
+    size = size_for_all_features
+    fs = 20 # fontsize of y-label and y-ticks
+    
+    if(topN != None):
+        if(topN < 20):
+            size = size_for_5_features
+            fs = 15 # fontsize of y-label and y-ticks
+        
+    
+    fig = plt.figure(figsize=size )
+    
+    
+
+    
+    LRP_order = [features[i] for i in np.argsort(LRP_mean)]
+    LRP_std_sorted = [LRP_std[i] for i in np.argsort(LRP_mean)]
+    LRP_order2 = [feature_names[feat] for feat in LRP_order]
+    relevances = np.sort(LRP_mean)    
+    
+    barplot = plt.bar(LRP_order2, relevances)
+    
+    xmax = len(LRP_order2)-0.5
+    xmin=-0.5
+    if(topN==None):
+        xmin=-0.5
+    else:
+        xmin = xmax-topN
+    
+    
+    plt.xticks(rotation=90, fontsize=15)
+    plt.yticks(fontsize=fs)
+    plt.xlim([xmin, xmax])
+    plt.ylabel('Mean Normalized Relevance', fontsize=fs)
+
+    
+    count = 0
+    for b in barplot:    
+        plt.fill_between([b.get_x(), b.get_x() + b.get_width()],
+                         b.get_height() - LRP_std_sorted[count],
+                         b.get_height() + LRP_std_sorted[count],
+                         lw=0,
+                         fc='none',
+                         ec='k',
+                         hatch='//',
+                         zorder=2)    
+        count += 1
+        
+        
+    fig.tight_layout()
+    fig.savefig('LRP_barplot.png')
+

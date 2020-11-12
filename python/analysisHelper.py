@@ -209,26 +209,88 @@ def get_lrp_score(test_inputs, model, nXvar, totalVar, batchShape=[20]):
     return lrp_plist, lrp_xaugs
     
 
-def get_normalized_lrp_score(lrp_plist, lrp_xaugs):
-
-    lrp_plist_norm = np.zeros_like(lrp_plist)
-    lrp_xaugs_norm = np.zeros_like(lrp_xaugs)
+def get_normalized_lrp_score(nXvar, totalVar, lrp=[], lrp_xaugs=[], batchShape=[20]):
     
-    if(len(lrp_plist > 0)):
-        for i in range(lrp_plist.shape[1]):
-
-            maxval = np.max(abs(lrp_plist[:,i].flatten()))
-            if(maxval < 1e-6): maxval = 1.
-            lrp_plist_norm[:,i] = lrp_plist[:,i] / maxval
-
-    if(len(lrp_xaugs > 0)):   
-        for i in range(lrp_xaugs.shape[1]):
-
-            maxval = np.max(abs(lrp_xaugs[:,i].flatten()))
-            lrp_xaugs_norm[:,i] = lrp_xaugs[:,i] / maxval
+    # lrp = list of images array or list of particle list features array
+    #       output of get_lrp_score()
+    # lrp_xaugs = list of expert variable features array
+    #             output of get_lrp_score()
+    # nXvar = number of expert features (xaugs)
+    # totalVar = total number of features
+    # batchShape =  [20] for particle list: number of constituent particles per event
+    #               [16, 16] for jet images: grid shape
     
     
-    return lrp_plist_norm, lrp_xaugs_norm
+    lrp_axis = (0,2,3)
+    if(len(batchShape)==2):
+        lrp_axis = (0,2,3,4)
+        
+        
+    if((len(lrp_xaugs) == 0) and (len(lrp) == 0)):
+        print('Both arrays are empty')
+        return [], []
+    
+    
+    
+    if(len(lrp_xaugs) > 0 and (len(lrp) > 0)):
+        
+        maxval_lrp = np.max(np.abs(lrp), axis=(lrp_axis))
+        maxval_xaugs = np.max(np.abs(lrp_xaugs), axis=(0,2))
+
+        maxval = np.where(maxval_lrp >= maxval_xaugs, maxval_lrp, maxval_xaugs)
+        
+        maxval_repeated_xaugs = np.tile(maxval, nXvar).reshape(lrp_xaugs.shape)
+        maxval_repeated_lrp = np.tile(np.repeat(maxval, np.prod(batchShape), axis =0), totalVar-nXvar).reshape(lrp.shape)
+
+        lrp_xaugs_norm = np.where(maxval_repeated_xaugs > 0, lrp_xaugs / maxval_repeated_xaugs, 0)
+        lrp_norm = np.where(maxval_repeated_lrp > 0, lrp / maxval_repeated_lrp, 0)
+
+    elif((len(lrp) > 0) and not (len(lrp_xaugs) > 0)):    
+    
+        maxval = maxval_lrp
+        maxval_repeated_lrp = np.tile(np.repeat(maxval, np.prod(batchShape), axis =0), totalVar-nXvar).reshape(lrp.shape)
+        lrp_xaugs_norm = []
+        
+        
+    elif((len(lrp_xaugs) > 0) and not ((len(lrp) > 0))):  
+
+        maxval = maxval_xaugs
+        maxval_repeated_xaugs = np.tile(maxval, nXvar).reshape(lrp_xaugs.shape)
+        lrp_norm = []
+    
+ 
+    return lrp_norm, lrp_xaugs_norm
+
+
+
+def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20]):
+    
+    # lrp_models = list of lrp (images or particle list) score arrays to average over
+    # lrp_xaugs_models = list of xaug lrp scores
+    # batchShape =  [20] for particle list: number of constituent particles per event
+    #               [16, 16] for jet images: grid shape
+    
+    lrp_mean = []
+    lrp_xaugs_mean = []
+    
+    lrp_axis = (0,2,3,4)
+    if(len(batchShape)==2):
+        lrp_axis = (0,2,3,4,5)
+    
+    if((len(lrp_models) > 0)):
+        lrp_mean = np.sum(lrp_models, axis=0) / len(lrp_models)
+        lrp_std = np.std(lrp_models, axis=lrp_axis)
+        
+        
+    
+    if(len(lrp_xaugs_models) > 0):
+        lrp_xaugs_mean = np.sum(lrp_xaugs_models, axis=0) / len(lrp_xaugs_models)
+        lrp_xaugs_std = np.std(lrp_xaugs_models, axis=(0,2,3))
+        
+
+
+    return lrp_mean, lrp_xaugs_mean, lrp_std
+
 
 
 

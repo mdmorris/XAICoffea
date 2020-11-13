@@ -285,9 +285,9 @@ def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20], isSu
     if((len(lrp_models) > 0)):
         
         if ((len(batchShape)==2) and (isSum)):
-            lrp_models = np.sum(lrp_models,axis = (3,4)) # sum only along image grid
+            lrp_models = np.sum(lrp_models,axis = (2,3))  # sum only along image grid
         elif ((len(batchShape)==2) and not(isSum)):
-            lrp_models = np.max(lrp_models,axis = (3,4)) # max only along image grid
+            lrp_models = np.max(lrp_models,axis = (2,3)) # max only along image grid
         
         nEvents = lrp_models[0].shape[1]
         

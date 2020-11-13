@@ -37,6 +37,7 @@ import os
 import datetime
 
 feature_names={ 'jetImages':'Image',
+                'particleList':'List',
                 'jetconstE_log':'log($E$)',
                 'jetconstEta_abs':'$|\eta|$',
                 'jetconstPt_Jetlog':'log($p_T / p_{T_{jet}}$)',
@@ -120,6 +121,13 @@ def get_lrp_score(test_inputs, model, nXvar, totalVar, batchShape=[20]):
     #               [16, 16] for jet images: grid shape
     
     lrp_toc = time.time()
+    
+    # rename dense layers for model_wo_softmax function
+    layer_i = 1
+    for layer in model.layers:
+        if('dense' in layer.name):
+            layer.name = 'renamed_dense_layer'+str(layer_i)
+            layer_i += 1
     
     # strip model of softmax layer
     best_model_wo_softmax = innvestigate.utils.keras.graph.model_wo_softmax(model)
@@ -263,7 +271,7 @@ def get_normalized_lrp_score(nXvar, totalVar, lrp=[], lrp_xaugs=[], batchShape=[
 
 
 
-def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20], isSum=False):
+def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20], isSum=True):
     
     # lrp_models = list of lrp (images or particle list) score arrays to average over
     # lrp_xaugs_models = list of xaug lrp scores
@@ -278,23 +286,40 @@ def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20], isSu
     lrp_std = []
     lrp_xaugs_std = []
     
-    lrp_axis = (0,2,3,4)
+    lrp_axis = (0,2,3)
     if(len(batchShape)==2):
         lrp_axis = (0,2,3)
     
     if((len(lrp_models) > 0)):
         
         if ((len(batchShape)==2) and (isSum)):
-            lrp_models = np.sum(lrp_models,axis = (3,4)) # sum only along image grid
+            lrp_models = np.sum(lrp_models,axis = (3,4))  # sum only along image grid
+            
+            # average by nonzero pixels
+            
+#             lrp_models = np.divide(np.sum(lrp_models,axis = (3,4)),  np.count_nonzero( lrp_models, axis = (3,4) ))
+            
         elif ((len(batchShape)==2) and not(isSum)):
             lrp_models = np.max(lrp_models,axis = (3,4)) # max only along image grid
+            
+            
+        if ((len(batchShape)==1) and (isSum)):
+              
+            lrp_models = np.sum(lrp_models,axis = 3)  # sum particle list lrp
+          
+        elif ((len(batchShape)==1) and not(isSum)):
+            lrp_models = np.max(lrp_models,axis = 3) # max only along image grid    
+        
         
         nEvents = lrp_models[0].shape[1]
         
-        if(len(batchShape)==2):
-            lrp_means = np.sum(np.abs(lrp_models), axis=lrp_axis[1:]) / (nEvents)
-        else:
-            lrp_means = np.sum(np.abs(lrp_models), axis=lrp_axis[1:]) / (np.prod(batchShape)*nEvents)
+        lrp_means = np.sum(np.abs(lrp_models), axis=lrp_axis[1:]) / (nEvents)
+
+        
+#         if(len(batchShape)==2):
+#             lrp_means = np.sum(np.abs(lrp_models), axis=lrp_axis[1:]) / (nEvents)
+#         else:
+#             lrp_means = np.sum(np.abs(lrp_models), axis=lrp_axis[1:]) / (np.prod(batchShape)*nEvents)
         lrp_mean = np.sum(lrp_means, axis=0) / (len(lrp_models))
         lrp_std = np.std(lrp_means, axis=0)
         
@@ -307,9 +332,15 @@ def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20], isSu
         lrp_xaugs_mean = np.sum(lrp_xaugs_means, axis=0) / len(lrp_xaugs_models)
         lrp_xaugs_std = np.std(lrp_xaugs_means, axis=0)
         
-    
-    lrp_mean_list = [lrp for lrp in lrp_mean] + [lrp for lrp in lrp_xaugs_mean]
-    lrp_std_list = [std for std in lrp_std] + [lrp for lrp in lrp_xaugs_std]
+    if(isSum):
+        print(lrp_means.shape)
+        lrp_mean_list = [np.sum(lrp_mean)] + [lrp for lrp in lrp_xaugs_mean]
+        lrp_std_list = [np.std(lrp_means)] + [lrp for lrp in lrp_xaugs_std]
+        
+    else:
+        lrp_mean_list = [lrp for lrp in lrp_mean] + [lrp for lrp in lrp_xaugs_mean]
+        lrp_std_list = [std for std in lrp_std] + [lrp for lrp in lrp_xaugs_std]
+
 
     return lrp_mean_list, lrp_std_list
 
@@ -318,7 +349,7 @@ def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20], isSu
 
 def make_relevance_bar_plot(features, LRP_mean, LRP_std, topN=None):
     
-    # list of features in same order as LRP_mean
+    # features = list of features in same order as LRP_mean
     # LRP_mean = array of averaged relevance scores
     # LRP_std = standard deviation of averaged relevance scores
     # topN = number of highest relevance scores to plot (for all features, topN=None)
@@ -352,9 +383,6 @@ def make_relevance_bar_plot(features, LRP_mean, LRP_std, topN=None):
     
     fig = plt.figure(figsize=size )
     
-    
-
-    
     LRP_order = [features[i] for i in np.argsort(LRP_mean)]
     LRP_std_sorted = [LRP_std[i] for i in np.argsort(LRP_mean)]
     LRP_order2 = [feature_names[feat] for feat in LRP_order]
@@ -369,11 +397,15 @@ def make_relevance_bar_plot(features, LRP_mean, LRP_std, topN=None):
     else:
         xmin = xmax-topN
     
+    ymin = 0
+    ymax = (relevances[-1] + LRP_std_sorted[-1])*1.02
+    
+    plt.xlim([xmin, xmax])
+    plt.ylim([ymin, ymax])
     
     plt.xticks(rotation=90, fontsize=15)
     plt.yticks(fontsize=fs)
-    plt.xlim([xmin, xmax])
-    plt.ylim([0,None])
+    
     plt.ylabel('Mean Normalized Relevance', fontsize=fs)
 
     

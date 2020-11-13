@@ -263,12 +263,13 @@ def get_normalized_lrp_score(nXvar, totalVar, lrp=[], lrp_xaugs=[], batchShape=[
 
 
 
-def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20]):
+def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20], isSum=False):
     
     # lrp_models = list of lrp (images or particle list) score arrays to average over
     # lrp_xaugs_models = list of xaug lrp scores
     # batchShape =  [20] for particle list: number of constituent particles per event
     #               [16, 16] for jet images: grid shape
+    # isSum = True or False : take sum of relevance of image grid pixels (True) or take maximum relevance (False)
     
     
     
@@ -279,13 +280,21 @@ def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20]):
     
     lrp_axis = (0,2,3,4)
     if(len(batchShape)==2):
-        lrp_axis = (0,2,3,4,5)
+        lrp_axis = (0,2,3)
     
     if((len(lrp_models) > 0)):
         
+        if ((len(batchShape)==2) and (isSum)):
+            lrp_models = np.sum(lrp_models,axis = (3,4)) # sum only along image grid
+        elif ((len(batchShape)==2) and not(isSum)):
+            lrp_models = np.max(lrp_models,axis = (3,4)) # max only along image grid
+        
         nEvents = lrp_models[0].shape[1]
-        print('lrp', nEvents)
-        lrp_means = np.sum(np.abs(lrp_models), axis=lrp_axis[1:]) / (np.prod(batchShape)*nEvents)
+        
+        if(len(batchShape)==2):
+            lrp_means = np.sum(np.abs(lrp_models), axis=lrp_axis[1:]) / (nEvents)
+        else:
+            lrp_means = np.sum(np.abs(lrp_models), axis=lrp_axis[1:]) / (np.prod(batchShape)*nEvents)
         lrp_mean = np.sum(lrp_means, axis=0) / (len(lrp_models))
         lrp_std = np.std(lrp_means, axis=0)
         
@@ -294,7 +303,6 @@ def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20]):
     if(len(lrp_xaugs_models) > 0):
         
         nEvents = lrp_xaugs_models[0].shape[1]
-        print('xaugs', nEvents)
         lrp_xaugs_means = np.sum(np.abs(lrp_xaugs_models), axis=(2,3)) / nEvents
         lrp_xaugs_mean = np.sum(lrp_xaugs_means, axis=0) / len(lrp_xaugs_models)
         lrp_xaugs_std = np.std(lrp_xaugs_means, axis=0)
@@ -365,6 +373,7 @@ def make_relevance_bar_plot(features, LRP_mean, LRP_std, topN=None):
     plt.xticks(rotation=90, fontsize=15)
     plt.yticks(fontsize=fs)
     plt.xlim([xmin, xmax])
+    plt.ylim([0,None])
     plt.ylabel('Mean Normalized Relevance', fontsize=fs)
 
     

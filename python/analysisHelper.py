@@ -285,8 +285,9 @@ def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20]):
         
         nEvents = lrp_models[0].shape[1]
         print('lrp', nEvents)
-        lrp_mean = np.sum(lrp_models, axis=lrp_axis) / (len(lrp_models)*np.prod(batchShape)*nEvents)
-        lrp_std = np.std(lrp_models, axis=lrp_axis)
+        lrp_means = np.sum(np.abs(lrp_models), axis=lrp_axis[1:]) / (np.prod(batchShape)*nEvents)
+        lrp_mean = np.sum(lrp_means, axis=0) / (len(lrp_models))
+        lrp_std = np.std(lrp_means, axis=0)
         
         
     
@@ -294,8 +295,9 @@ def get_mean_relevance(lrp_models=[], lrp_xaugs_models=[], batchShape=[20]):
         
         nEvents = lrp_xaugs_models[0].shape[1]
         print('xaugs', nEvents)
-        lrp_xaugs_mean = np.sum(lrp_xaugs_models, axis=(0,2,3)) / len(lrp_xaugs_models*nEvents)
-        lrp_xaugs_std = np.std(lrp_xaugs_models, axis=(0,2,3))
+        lrp_xaugs_means = np.sum(np.abs(lrp_xaugs_models), axis=(2,3)) / nEvents
+        lrp_xaugs_mean = np.sum(lrp_xaugs_means, axis=0) / len(lrp_xaugs_models)
+        lrp_xaugs_std = np.std(lrp_xaugs_means, axis=0)
         
     
     lrp_mean_list = [lrp for lrp in lrp_mean] + [lrp for lrp in lrp_xaugs_mean]

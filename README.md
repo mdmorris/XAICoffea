@@ -31,5 +31,65 @@ jupyter notebook --ip 0.0.0.0 --no-browser
 
 Then point your webbrowser to the instance (if you are local, try [localhost](https://localhost:8888)). 
 
-Open the [quickplots notebook](https://github.com/ubcms-xai/XAICoffea/blob/main/quickplots.ipynb) within the notebook and execute it. 
+Open the [quickplots notebook](https://github.com/ubcms-xai/XAICoffea/blob/main/quickplots.ipynb) within the notebook and execute it.
 
+
+## Toy Model Studies
+
+
+
+## Pythia Model Studies
+
+### Preprocessing
+
+Start by preprocessing the pythia files. (Preprocessing explained in detail in [our paper](https://arxiv.org/abs/2011.13466) )
+
+First, connect to the UBCCRCMS docker image
+
+```
+sudo ./runUBCCRCMS.sh srappoccio/ubccr-cms:latest
+```
+
+Within the docker image:
+
+```
+jupyter notebook --ip 0.0.0.0 --no-browser 
+```
+
+Run [Showjets.ipynb](https://github.com/ubcms-xai/XAICoffea/blob/main/ShowJets.ipynb)
+
+This will:
+
+* Select the leading jet and keep its leading 20 constituents
+* Select the variables of interest
+* Rotate, center, and scale the image
+* Save npz files
+
+Run [CNN_Data_preprocess_all.ipynb](https://github.com/ubcms-xai/XAICoffea/blob/main/CNN_Data_preprocess_all.ipynb)
+
+This will:
+
+* Normalize the single-variable inputs
+* Create test and train datasets for signal (Z to bb) and background (QCD)
+
+### Neural Networks
+
+When training, testing, or analyzing the networks with LRP, we need to use the innvestigate_tensorflow docker image. (Using tensorflow version 1.)
+
+```
+sudo ./runUBCCRCMS.sh srappoccio/innvestigate_tensorflow:latest
+```
+
+Within the docker image:
+
+```
+jupyter notebook --ip 0.0.0.0 --no-browser 
+```
+
+#### 2D CNN
+
+Run the training
+
+#### 1D CNN
+
+## Plotting

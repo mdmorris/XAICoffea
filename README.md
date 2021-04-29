@@ -94,7 +94,9 @@ jupyter notebook --ip 0.0.0.0 --no-browser
 
 #### 2D CNN
 
-Run the training
+ * Plot the inputs: [CNN_Data_plotting.ipynb](https://github.com/ubcms-xai/XAICoffea/blob/main/CNN_2D/CNN_Data_plotting.ipynb)
+ * Build the models: [CNN_fit_model.ipynb](https://github.com/ubcms-xai/XAICoffea/blob/main/CNN_2D/CNN_fit_model.ipynb)
+ * Test the models and analyze with LRP: [CNN_Analyze.ipynb](https://github.com/ubcms-xai/XAICoffea/blob/main/CNN_2D/CNN_Analyze.ipynb)
 
 #### 1D CNN
 

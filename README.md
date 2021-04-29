@@ -33,6 +33,12 @@ Then point your webbrowser to the instance (if you are local, try [localhost](ht
 
 Open the [quickplots notebook](https://github.com/ubcms-xai/XAICoffea/blob/main/quickplots.ipynb) within the notebook and execute it.
 
+## Machine Learning Studies - Common Files
+
+**[Network Builder](https://github.com/ubcms-xai/XAICoffea/blob/main/python/networkBuilder.py)**: Builds common network architectures
+
+**[Analysis Helper](https://github.com/ubcms-xai/XAICoffea/blob/main/python/analysisHelper.py)**: Defines LRP functions and relevance bar plot function
+
 
 ## Toy Model Studies
 

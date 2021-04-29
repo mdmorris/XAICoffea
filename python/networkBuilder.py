@@ -57,7 +57,7 @@ def build_CNN_2D(X_train, grid):
                 metrics = ['categorical_crossentropy', 'accuracy'])
     return model
 
-def build_CNN_2D(n, nex):
+def build_CNN_1D(n, nex):
     
     # n = total number of input features
     # nex = number of expert features (xaugs)

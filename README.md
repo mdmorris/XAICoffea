@@ -42,7 +42,46 @@ Open the [quickplots notebook](https://github.com/ubcms-xai/XAICoffea/blob/main/
 
 ## Toy Model Studies
 
+### Preprocssing
+We start by generating toy model data. The z and theta distibutions for signal are derived from a normal distribution and the z and theta for the background sample are derived from an exponential disttibution. To run this scipt, we first connect to UBCCR image that supports coffea
 
+```
+sudo ./runUBCCRCMS.sh srappoccio/ubccr-cms:latest
+```
+
+and once you have a port, start the jupyter notebook:
+
+```
+jupyter notebook --ip 0.0.0.0 --no-browser 
+```
+To produce training and testing samples run the notebook - [makeJetImages.ipynb](https://github.com/ubcms-xai/XAICoffea/blob/main/ToyModel/makeJetImages.ipynb)
+This will produce seperate files for training and testing samples that inclues toy signal and background events.
+
+### Neural Networks
+
+When training, testing, or analyzing the networks with LRP, we need to use the innvestigate_tensorflow docker image. (Using tensorflow version 1.)
+
+```
+sudo ./runUBCCRCMS.sh srappoccio/innvestigate_tensorflow:latest
+```
+
+Within the docker image:
+
+```
+jupyter notebook --ip 0.0.0.0 --no-browser 
+```
+
+#### 2D CNN
+
+For 2D CNN we train 2 different kinds of models: one with image as imput and another with image ans XAUGs.
+Both can be built, initialised, trained and evaluated using [CNN_2D.ipynb](https://github.com/ubcms-xai/XAICoffea/blob/main/ToyModel/CNN_2D.ipynb). This sript also produces some elementary plots to visualise the model performance.
+
+Next, we can run LRP on the trained model to learn the relevance of an input in the NN decision. Depending on the model we are interested in we have two seperate scrpits:
+  * [Running LRP on Toy model with Image as input](https://github.com/ubcms-xai/XAICoffea/blob/main/ToyModel/LRP_toy_imageOnly.ipynb)
+  * [Running LRP on Toy model with Image + XAUGs as inputs](https://github.com/ubcms-xai/XAICoffea/blob/main/ToyModel/LRP_toy_XAUG.ipynb)
+ 
+
+Both scrpits run LRP on the models and produce plots to visualize the relevance of each input variable.
 
 ## Pythia Model Studies
 
